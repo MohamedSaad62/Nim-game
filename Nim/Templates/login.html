@@ -1,0 +1,16 @@
+
+<html>
+	<title>
+	</title>
+	<body>
+	 <form action="lobby/" method="post">
+     	{% csrf_token %}
+		<label>Username</label>
+		<input type="text" placeholder="Enter Username" name="username" required>
+		<input type="password" placeholder="Enter password" name="password" required>
+		<button type="submit">Login</button>
+		
+	</form>
+	<a href="http://192.168.1.7/create">Don't have a username yet?</a>
+	</body>
+</html>

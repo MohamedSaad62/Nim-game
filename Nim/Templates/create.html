@@ -1,0 +1,30 @@
+
+<html>
+	<title>
+	</title>
+	<body>
+		<form action="" method="post">
+		{% csrf_token %}
+
+		<label>Username</label>
+		<input type="text" placeholder="Enter Username" name="username" required>
+		<label>Password</label>
+		<input type="password" placeholder="Enter password" name="password" required>
+		<button type="submit">create</button><br>
+		{% if method == 'POST'%}
+		
+			{% if username == 'yes'%}
+				username already exist choose another one
+			{%else%}
+				account created successfully
+
+			{% endif %}
+		{% endif %}	
+		
+	  	  
+	  
+	</form>
+
+	<a href="http://192.168.1.7">login</a>
+	</body>
+</html>

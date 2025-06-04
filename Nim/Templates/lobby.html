@@ -1,0 +1,23 @@
+
+<html>
+	<title>
+	</title>
+	<body>
+		
+     			{% csrf_token %}
+			{% for user in users %}
+				{% if user != me %}
+					<form action="" method="post">
+						{% csrf_token %}
+						<label>{{user}}</label><br>
+						<input type="hidden" name="from" value= {{me}}>
+						<input type="hidden" name="to" value= {{user}}>
+						<button type="submit">send game request</button>
+					</form>
+				{%endif%}
+
+			{%endfor%}
+
+
+	</body>
+</html>

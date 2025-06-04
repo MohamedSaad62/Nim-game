@@ -1,0 +1,16 @@
+<center><h1>Welcome to Nim game</h1></center>
+
+		<form action="" method="post">
+		    {% csrf_token %}
+		    <input type = 'number' placeholder="Enter guess" name="guess" required>	
+		    <br>		
+		    <button type="submit">submit</button>
+		</form>
+		
+
+
+
+<form action="" method="post">
+    {% csrf_token %}		
+    <button type="submit" name='again' value= 'again'>playAgin</button>
+</form>
