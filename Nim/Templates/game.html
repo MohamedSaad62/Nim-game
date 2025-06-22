@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Game Board</title>
+    <style>
+        .board {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            height: 200px;
+            padding: 20px;
+            background-color: #f0f0f0;
+            margin-top: 100px;
+        }
+
+        .pile {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .stone {
+            width: 24px;
+            height: 24px;
+            background-color: #555;
+            border-radius: 50%;
+            margin: 3px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .label {
+            margin-top: 5px;
+            font-weight: bold;
+        }
+
+        .count {
+            font-size: 14px;
+            color: #444;
+            margin-bottom: 5px;
+        }
+
+        .move-form {
+            margin-top: 10px;
+        }
+
+        .move-form input[type="number"] {
+            width: 50px;
+            padding: 5px;
+            margin-right: 5px;
+            border: 1px solid #aaa;
+            border-radius: 5px;
+        }
+
+        .move-form button {
+            padding: 5px 10px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .move-form button:hover {
+            background-color: #0056b3;
+        }
+
+        .wait-message {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">Game Board</h1>
+    <div class="board">
+        {% for pile in piles %}
+            <div class="pile">
+                <div class="count">{{ pile|length }} stones</div>
+                {% for _ in pile %}
+                    <div class="stone"></div>
+                {% endfor %}
+                <div class="label">Pile {{ forloop.counter }}</div>
+
+                {% if player == turn %}
+                    <!-- Move Form -->
+                    <form action="" method="post" class="move-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="pile_index" value="{{ forloop.counter0 }}">
+                        <input type="number" name="remove_count" min="1" max="{{ pile|length }}" required>
+                        <button type="submit">Remove</button>
+                    </form>
+                {% else %}
+                    <div class="wait-message">Wait for your turn</div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
+

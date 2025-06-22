@@ -1,30 +1,96 @@
-
 <html>
-	<title>
-	</title>
-	<body>
-		<form action="" method="post">
-		{% csrf_token %}
+<head>
+    <title>Create Account</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
 
-		<label>Username</label>
-		<input type="text" placeholder="Enter Username" name="username" required>
-		<label>Password</label>
-		<input type="password" placeholder="Enter password" name="password" required>
-		<button type="submit">create</button><br>
-		{% if method == 'POST'%}
-		
-			{% if username == 'yes'%}
-				username already exist choose another one
-			{%else%}
-				account created successfully
+        form {
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 300px;
+        }
 
-			{% endif %}
-		{% endif %}	
-		
-	  	  
-	  
-	</form>
+        label {
+            font-weight: bold;
+        }
 
-	<a href="http://192.168.1.7">login</a>
-	</body>
+        input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        a {
+            margin-top: 15px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .message {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #d9534f;
+        }
+
+        .success {
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <form action="" method="post">
+        {% csrf_token %}
+
+        <label>Username</label>
+        <input type="text" placeholder="Enter Username" name="username" required>
+
+        <label>Password</label>
+        <input type="password" placeholder="Enter password" name="password" required>
+
+        <button type="submit">Create</button>
+
+        {% if method == 'POST' %}
+            {% if username == 'yes' %}
+                <div class="message">Username already exists. Choose another one.</div>
+            {% else %}
+                <div class="message success">Account created successfully!</div>
+            {% endif %}
+        {% endif %}
+    </form>
+
+    <a href="http://192.168.1.7">Login</a>
+</body>
 </html>

@@ -1,16 +1,73 @@
-
 <html>
-	<title>
-	</title>
-	<body>
-	 <form action="lobby/" method="post">
-     	{% csrf_token %}
-		<label>Username</label>
-		<input type="text" placeholder="Enter Username" name="username" required>
-		<input type="password" placeholder="Enter password" name="password" required>
-		<button type="submit">Login</button>
-		
-	</form>
-	<a href="http://192.168.1.7/create">Don't have a username yet?</a>
-	</body>
+<head>
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        form {
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 300px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        a {
+            margin-top: 15px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <form action="lobby/" method="post">
+        {% csrf_token %}
+        <label>Username</label>
+        <input type="text" placeholder="Enter Username" name="username" required>
+        <input type="password" placeholder="Enter password" name="password" required>
+        <button type="submit">Login</button>
+    </form>
+    <a href="http://192.168.1.7/create">Don't have a username yet?</a>
+</body>
 </html>

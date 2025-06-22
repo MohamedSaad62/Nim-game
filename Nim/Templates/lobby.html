@@ -1,23 +1,92 @@
-
 <html>
-	<title>
-	</title>
-	<body>
-		
-     			{% csrf_token %}
-			{% for user in users %}
-				{% if user != me %}
-					<form action="" method="post">
-						{% csrf_token %}
-						<label>{{user}}</label><br>
-						<input type="hidden" name="from" value= {{me}}>
-						<input type="hidden" name="to" value= {{user}}>
-						<button type="submit">send game request</button>
-					</form>
-				{%endif%}
+<head>
+    <title>Lobby</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            padding: 40px;
+            margin: 0;
+        }
 
-			{%endfor%}
+        form {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            max-width: 400px;
+        }
 
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
 
-	</body>
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            margin-right: 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button[name="response"][value="accept"] {
+            background-color: #28a745;
+        }
+
+        button[name="response"][value="accept"]:hover {
+            background-color: #1e7e34;
+        }
+
+        button[name="response"][value="reject"] {
+            background-color: #dc3545;
+        }
+
+        button[name="response"][value="reject"]:hover {
+            background-color: #c82333;
+        }
+
+        p1 {
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    {% csrf_token %}
+    {% for user in users %}
+        {% if user != me %}
+            <form action="" method="post">
+                {% csrf_token %}
+                <label>{{ user }}</label>
+                <input type="hidden" name="from" value="{{ me }}">
+                <input type="hidden" name="to" value="{{ user }}">
+                <button type="submit">Send Game Request</button>
+            </form>
+
+            {% if user in senders %}
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <p1>{{ user }} sent a game request to you</p1><br><br>
+                    <input type="hidden" name="from" value="{{ user }}">
+                    <button type="submit" name="response" value="accept">Accept</button>
+                    <button type="submit" name="response" value="reject">Reject</button>
+                </form>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+
+</body>
 </html>
