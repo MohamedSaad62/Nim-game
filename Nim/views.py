@@ -2,10 +2,31 @@ from django.shortcuts import render
 from .models import users, requests, games
 from django.http import HttpResponse
 import random as rd
-from django.shortcuts import redirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.utils import timezone
 from django.db import IntegrityError
+import jwt
+import datetime
+from django.conf import settings
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
+import json
+def generate_jwt(username):
+    payload = {
+        "username": username,
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+    }
+    token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+    return token
+
+def verify_jwt(token):
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+        return True  # token is valid
+    except ExpiredSignatureError:
+        return False  # token expired
+    except InvalidTokenError:
+        return False  # invalid token (bad signature, tampered, etc.)
 def is_online(date):
     diff = timezone.now()- date
     diff = diff.total_seconds() / 60
@@ -19,18 +40,23 @@ def authorised(request):
         username = request.POST['username']
         password = request.POST['password']
         try:
-            user = users.objects.get(username=username, password=password)
-            return True
+            user = users.objects.get(username=username)
+            if user.check_password(password):  # <-- compares using salt and secure hash
+                
+                return True
+            else:
+                return False
         except users.DoesNotExist:
             return False
 
-    elif 'username' in request.COOKIES:
-        return True
+    elif 'jwt' in request.COOKIES:
+        return verify_jwt(request.COOKIES['jwt'])
 def fetch_username(request):
     if request.method == 'POST' and 'username' in request.POST:
         return request.POST['username']
     else: 
-        return request.COOKIES['username']
+        payload = jwt.decode(request.COOKIES['jwt'], settings.SECRET_KEY, algorithms=["HS256"]) 
+        return payload['username']
 
 def get_online():
     """
@@ -106,7 +132,7 @@ def lobby(request):
             context['me'] = username
             context['senders'] = get_senders(username)
             response =  render(request, 'lobby.html', context)
-            response.set_cookie('username', username, max_age=3600)
+            response.set_cookie('jwt', generate_jwt(username))
             return response
         
     else :
@@ -114,34 +140,44 @@ def lobby(request):
 
 
    
+
 def play(request):
-    if authorised(request):
-        username = fetch_username(request)
-        user = users.objects.get(username=username)
-        game = games.objects.filter(player1=user).first() or games.objects.filter(player2=user).first()
-        context = {}
-        if game.player1 == user:
-            context['player'] = 0  
-        else:
-            context['player'] = 1
-        
-        context['turn'] = game.turn
-        if 'pile_index' in request.POST and 'remove_count' in request.POST:
-            if context['player'] == game.turn:
-                print(game.turn)
-                game.turn ^= 1
-                print(game.turn)
-                lis = turn_string_to_list(str(game.state))
-                lis[int(request.POST['pile_index'])] -= int(request.POST['remove_count'])
-                game.state = turn_list_to_string(lis)
-                game.save(update_fields=["turn", "state"])
-        state =  turn_string_to_list(str(game.state))
-        piles = [[None] * count for count in state]
-        context['piles'] =piles
-        context['turn'] = game.turn
-        return render(request, 'game.html', context)
-    else :
+    if not authorised(request):
         return redirect('Nim:login')
+
+    username = fetch_username(request)
+    user = users.objects.get(username=username)
+
+    game = games.objects.filter(player1=user).first() or games.objects.filter(player2=user).first()
+    if not game:
+        return redirect('Nim:lobby')  # fallback if game not found
+
+    context = {}
+    context['player'] = 0 if game.player1 == user else 1
+    context['turn'] = game.turn
+    context['username'] = username
+    context['game_id'] = game.id
+
+    # Handle move
+    if request.method == 'POST' and 'pile_index' in request.POST and 'remove_count' in request.POST:
+        if context['player'] == game.turn:
+            lis = turn_string_to_list(game.state)
+            pile_index = int(request.POST['pile_index'])
+            remove_count = int(request.POST['remove_count'])
+
+            if 0 <= pile_index < len(lis) and 1 <= remove_count <= lis[pile_index]:
+                lis[pile_index] -= remove_count
+                game.state = turn_list_to_string(lis)
+                game.turn ^= 1
+                game.save(update_fields=["state", "turn"])
+        return HttpResponseRedirect(reverse('Nim:play'))
+
+    # Prepare piles for rendering
+    state = turn_string_to_list(game.state)
+    piles = [[None] * count for count in state]
+    context['piles'] = json.dumps(piles)
+
+    return render(request, 'game.html', context)
 
 def create (request):
     context = {}
@@ -149,12 +185,13 @@ def create (request):
         context['method'] = 'POST'
         if 'username' in request.POST and 'password' in request.POST:
             try: #try to create account 
-                users.objects.create(
+                user = users(
                 username=request.POST['username'],
-                password=request.POST['password'],
                 last_time=timezone.now(),
                 status=0
                 )
+                user.set_password(request.POST['password'])  
+                user.save()
                 context['username'] = 'no'
             except IntegrityError:
                 context['username'] = 'yes' #mean user name already exist and this viewed in html page

@@ -41,10 +41,6 @@
             margin-bottom: 5px;
         }
 
-        .move-form {
-            margin-top: 10px;
-        }
-
         .move-form input[type="number"] {
             width: 50px;
             padding: 5px;
@@ -74,30 +70,115 @@
     </style>
 </head>
 <body>
-    <h1 style="text-align: center;">Game Board</h1>
-    <div class="board">
-        {% for pile in piles %}
-            <div class="pile">
-                <div class="count">{{ pile|length }} stones</div>
-                {% for _ in pile %}
-                    <div class="stone"></div>
-                {% endfor %}
-                <div class="label">Pile {{ forloop.counter }}</div>
+<h1 style="text-align: center;">Game Board</h1>
+<div class="board"></div>
 
-                {% if player == turn %}
-                    <!-- Move Form -->
-                    <form action="" method="post" class="move-form">
-                        {% csrf_token %}
-                        <input type="hidden" name="pile_index" value="{{ forloop.counter0 }}">
-                        <input type="number" name="remove_count" min="1" max="{{ pile|length }}" required>
-                        <button type="submit">Remove</button>
-                    </form>
-                {% else %}
-                    <div class="wait-message">Wait for your turn</div>
-                {% endif %}
-            </div>
-        {% endfor %}
-    </div>
+<script>
+    const username = "{{ username }}";
+    const gameId = "{{ game_id }}";
+    const playerIndex = {{ player }};
+    let currentTurn = {{ turn }};
+    let currentPiles = {{ piles|safe }};
+
+    const board = document.querySelector(".board");
+    const ws = new WebSocket(`ws://localhost:8000/ws/nim/${gameId}`);
+
+    ws.onopen = () => {
+        console.log("WebSocket connected");
+    };
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log("WS received:", data);
+
+        currentTurn = data.turn;
+        currentPiles = data.piles;
+        renderBoard();
+    };
+
+    function sendMove(pileIndex, removeCount) {
+        fetch("", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: `pile_index=${pileIndex}&remove_count=${removeCount}`
+        }).then(response => {
+            currentPiles[pileIndex].splice(0, removeCount);
+            currentTurn ^= 1;
+
+            ws.send(JSON.stringify({
+                type: "move",
+                username: username,
+                piles: currentPiles,
+                turn: currentTurn
+            }));
+
+            renderBoard();
+        });
+    }
+
+    function renderBoard() {
+        board.innerHTML = "";
+
+        currentPiles.forEach((pile, i) => {
+            const pileDiv = document.createElement("div");
+            pileDiv.className = "pile";
+
+            const countDiv = document.createElement("div");
+            countDiv.className = "count";
+            countDiv.textContent = `${pile.length} stones`;
+            pileDiv.appendChild(countDiv);
+
+            pile.forEach(() => {
+                const stoneDiv = document.createElement("div");
+                stoneDiv.className = "stone";
+                pileDiv.appendChild(stoneDiv);
+            });
+
+            const labelDiv = document.createElement("div");
+            labelDiv.className = "label";
+            labelDiv.textContent = `Pile ${i + 1}`;
+            pileDiv.appendChild(labelDiv);
+
+            if (playerIndex === currentTurn && pile.length > 0) {
+                const input = document.createElement("input");
+                input.type = "number";
+                input.min = 1;
+                input.max = pile.length;
+                input.required = true;
+
+                const button = document.createElement("button");
+                button.textContent = "Remove";
+
+                button.onclick = () => {
+                    const count = parseInt(input.value);
+                    if (count >= 1 && count <= pile.length) {
+                        sendMove(i, count);
+                    }
+                };
+
+                pileDiv.appendChild(input);
+                pileDiv.appendChild(button);
+            } else {
+                const waitMsg = document.createElement("div");
+                waitMsg.className = "wait-message";
+                waitMsg.textContent = "Wait for your turn";
+                pileDiv.appendChild(waitMsg);
+            }
+
+            board.appendChild(pileDiv);
+        });
+    }
+
+    function getCookie(name) {
+        let value = "; " + document.cookie;
+        let parts = value.split("; " + name + "=");
+        if (parts.length === 2) return parts.pop().split(";").shift();
+    }
+
+    renderBoard();
+</script>
 </body>
 </html>
-
