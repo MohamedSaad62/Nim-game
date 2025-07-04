@@ -118,7 +118,9 @@ def lobby(request):
 
     username = fetch_username(request)
     users.objects.filter(username=username).update(last_time=timezone.now())  # update last active time
-
+    user = users.objects.get(username=username)
+    if user.status == 1:
+        return redirect('Nim:play')
     if 'from' in request.POST and 'to' in request.POST:
         # Someone sent a game request
         try:
