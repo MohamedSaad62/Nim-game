@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
     <title>Lobby</title>
@@ -7,6 +8,20 @@
             background-color: #f9f9f9;
             padding: 40px;
             margin: 0;
+            position: relative;
+        }
+
+        .top-right-username {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #555;
+            background-color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
         }
 
         form {
@@ -61,14 +76,23 @@
             font-size: 14px;
             color: #333;
         }
+
+        #requests-box {
+            margin-top: 30px;
+        }
     </style>
 </head>
 <body>
 
+    <div class="top-right-username">
+        {{ me }}
+    </div>
+
     {% csrf_token %}
+
     {% for user in users %}
         {% if user != me %}
-            <form action="" method="post">
+            <form method="post" class="send-request-form">
                 {% csrf_token %}
                 <label>{{ user }}</label>
                 <input type="hidden" name="from" value="{{ me }}">
@@ -77,7 +101,7 @@
             </form>
 
             {% if user in senders %}
-                <form action="" method="post">
+                <form method="post" class="incoming-request-form">
                     {% csrf_token %}
                     <p1>{{ user }} sent a game request to you</p1><br><br>
                     <input type="hidden" name="from" value="{{ user }}">
@@ -87,6 +111,109 @@
             {% endif %}
         {% endif %}
     {% endfor %}
+
+    <!-- Box for incoming requests from WebSocket -->
+    <div id="requests-box" style="display: none;">
+        <h3>Incoming Requests</h3>
+        <div id="requests-list"></div>
+    </div>
+
+    <script>
+    const fastapiHost = location.hostname + ":8000";
+    const username = "{{ me|escapejs }}";
+    let socket = new WebSocket(`ws://${fastapiHost}/ws/lobby/${username}`);
+
+    socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+
+        if (data.type === "new_request") {
+            showRequestsBox();
+            addIncomingRequest(data.from);
+        }
+        else if (data.type === "request_response") {
+            alert(`${data.from} ${data.response}ed your game request.`);
+        }
+        else if (data.type === "game_start") {
+            const redirectUrl = data.url || "/play/";
+            window.location.href = redirectUrl;
+        }
+    };
+
+    // 🔁 Reconnect if socket closes
+    socket.onclose = function() {
+        console.log("WebSocket closed. Attempting to reconnect...");
+        setTimeout(() => {
+            location.reload();
+        }, 2000);
+    };
+
+    // 🔄 Keep alive: send ping every 30 seconds
+    setInterval(() => {
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.send("ping");
+        }
+    }, 30000);
+
+    function showRequestsBox() {
+        document.getElementById('requests-box').style.display = 'block';
+    }
+
+    function addIncomingRequest(fromUser) {
+        if (document.getElementById(`req-${fromUser}`)) return;
+
+        const form = document.createElement('form');
+        form.id = `req-${fromUser}`;
+        form.method = 'post';
+        form.className = 'incoming-request-form';
+
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = getCsrfToken();
+        form.appendChild(csrfInput);
+
+        const p1 = document.createElement('p1');
+        p1.textContent = `${fromUser} sent a game request to you`;
+        form.appendChild(p1);
+        form.appendChild(document.createElement('br'));
+        form.appendChild(document.createElement('br'));
+
+        const fromInput = document.createElement('input');
+        fromInput.type = 'hidden';
+        fromInput.name = 'from';
+        fromInput.value = fromUser;
+        form.appendChild(fromInput);
+
+        const acceptBtn = document.createElement('button');
+        acceptBtn.type = 'submit';
+        acceptBtn.name = 'response';
+        acceptBtn.value = 'accept';
+        acceptBtn.textContent = 'Accept';
+        form.appendChild(acceptBtn);
+
+        const rejectBtn = document.createElement('button');
+        rejectBtn.type = 'submit';
+        rejectBtn.name = 'response';
+        rejectBtn.value = 'reject';
+        rejectBtn.textContent = 'Reject';
+        rejectBtn.style.marginLeft = '10px';
+        form.appendChild(rejectBtn);
+
+        document.getElementById('requests-list').appendChild(form);
+    }
+
+    function getCsrfToken() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                return decodeURIComponent(cookie.substring(name.length + 1));
+            }
+        }
+        return '';
+    }
+    </script>
 
 </body>
 </html>

@@ -11,6 +11,23 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
+            position: relative;
+        }
+
+        .top-right {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .top-right a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .top-right a:hover {
+            text-decoration: underline;
         }
 
         form {
@@ -61,6 +78,10 @@
     </style>
 </head>
 <body>
+    <div class="top-right">
+        <a href="/rules">Rules</a>
+    </div>
+
     <form action="lobby/" method="post">
         {% csrf_token %}
         <label>Username</label>
@@ -68,6 +89,6 @@
         <input type="password" placeholder="Enter password" name="password" required>
         <button type="submit">Login</button>
     </form>
-    <a href="http://192.168.1.7/create">Don't have a username yet?</a>
+    <a href="/create">Don't have a username yet?</a>
 </body>
 </html>

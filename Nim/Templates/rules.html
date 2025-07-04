@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Nim Game Rules</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 40px;
+            background-color: #fdf6c5;
+            font-family: 'Georgia', serif;
+            color: #333;
+        }
+
+        .paper {
+            max-width: 700px;
+            margin: auto;
+            padding: 40px;
+            background-color: #fff8b3;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            border: 1px solid #e2d17d;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #444;
+        }
+
+        ul {
+            margin-left: 20px;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 40px;
+            font-size: 1.1em;
+        }
+
+        .back-link a {
+            color: #444;
+            text-decoration: none;
+            border-bottom: 1px dashed #444;
+        }
+
+        .back-link a:hover {
+            color: #222;
+            border-color: #222;
+        }
+    </style>
+</head>
+<body>
+    <div class="paper">
+        <h1>Rules of the Game of Nim</h1>
+        <ul>
+            <li>The game starts with several piles of objects (e.g., stones or sticks).</li>
+            <li>Two players take turns.</li>
+            <li>On each turn, a player must:
+                <ul>
+                    <li>Choose one pile, and</li>
+                    <li>Remove one or more objects from it.</li>
+                </ul>
+            </li>
+            <li>Players must remove at least one object on their turn.</li>
+            <li>The player who removes the last object wins the game.</li>
+        </ul>
+
+        <div class="back-link">
+            <a href="{% url 'Nim:login' %}">← Back to Login</a>
+        </div>
+    </div>
+</body>
+</html>
